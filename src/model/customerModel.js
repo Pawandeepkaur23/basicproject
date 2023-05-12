@@ -41,6 +41,12 @@ const customerSchema = new mongoose.Schema(
       required: true,
       enum: ["male", "female", "other"],
     },
+
+    skills: [
+      {
+        type: String,
+      },
+    ],
   },
   { timestamps: true }
 );
