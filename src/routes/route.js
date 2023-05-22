@@ -4,18 +4,49 @@ const customerController = require("../controller/customerController");
 const productController = require("../controller/productController");
 const middleware = require("../middleware/authentication");
 //API
-router.get(
-  "/customer",
-  middleware.demoMiddleware,
-  customerController.allCustomer
-);
-// customer routes
-router.get("/customer/:id", customerController.singleCustomer);
-router.put("/customer/:id", customerController.updateCustomer);
-router.delete("/customer/:id", customerController.deleteCustomer);
-router.post("/login", customerController.loginCustomer);
+
 router.post("/customer", customerController.createCustomer);
 
+//get all customers
+router.get(
+  "/customer",
+  middleware.authenticateToken,
+  customerController.allCustomer
+);
+//single customer
+router.get(
+  "/customer/:id",
+  middleware.authenticateToken,
+  middleware.authorization,
+  customerController.singleCustomer
+);
+
+router.put(
+  "/customer/:customerId",
+  middleware.authenticateToken,
+  middleware.authorization,
+  customerController.updateCustomer
+);
+router.delete(
+  "/customer/:id",
+  middleware.authenticateToken,
+  middleware.authorization,
+  customerController.deleteCustomer
+);
+
+router.post("/login", customerController.loginCustomer);
+
 //oder routes
-router.post("/order", productController.createOrder);
+router.post(
+  "/order",
+  middleware.authenticateToken,
+  middleware.authorization,
+  productController.createOrder
+);
+
+// get all orders
+// single order
+//update order
+//delete order
+
 module.exports = router;

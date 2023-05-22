@@ -1,6 +1,7 @@
 const customerModel = require("../model/customerModel");
 const { ObjectId } = require("mongoose").Types;
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const createCustomer = async function (req, res) {
   try {
@@ -31,10 +32,11 @@ const createCustomer = async function (req, res) {
       gender,
       skills,
     });
+    const { password: omit, ...responseData } = customerData._doc;
 
-    res.send({
+    res.status(201).send({
       message: "customer created successfully",
-      data: customerData,
+      data: responseData,
     });
   } catch (error) {
     console.log(error);
@@ -48,26 +50,36 @@ const loginCustomer = async function (req, res) {
     const { email, password } = data;
 
     if (!email) {
-      res.send({ message: "please provide email" });
+      res.status(400).send({ message: "please provide email" });
     }
 
     if (!password) {
-      res.send({ message: "please provide a password" });
+      res.status(400).send({ message: "please provide a password" });
     }
 
     const checkEmail = await customerModel.findOne({ email: email });
     if (!checkEmail) {
-      res.send({ message: "email doesn't exist, please login again" });
+      res
+        .status(404)
+        .send({ message: "email doesn't exist, please login again" });
     }
 
-    console.log("checkEmail", checkEmail);
+    console.log("checkEmail", checkEmail._id);
 
     const checkPassword = await bcrypt.compare(password, checkEmail.password);
     if (!checkPassword) {
-      res.send({ message: "wrong password" });
+      res.status(400).send({ message: "wrong password please try again" });
     }
 
-    res.send({ message: "login successful" });
+    const token = jwt.sign(
+      {
+        customerId: checkEmail._id,
+      },
+      "Secrete_Key",
+      { expiresIn: "1h" }
+    );
+
+    res.send({ message: "login successful", data: token });
   } catch (error) {
     console.log(error);
   }
@@ -75,9 +87,11 @@ const loginCustomer = async function (req, res) {
 
 const allCustomer = async function (req, res) {
   try {
-    const customerData = await customerModel.find();
+    const customerData = await customerModel
+      .find()
+      .select({ email: 1, gender: 1 });
     const totalCount = await customerModel.countDocuments();
-    res.send({
+    res.status(200).send({
       message: "all customers fetch successfully",
       count: totalCount,
       data: customerData,
@@ -91,7 +105,9 @@ const singleCustomer = async function (req, res) {
   try {
     const { id } = req.params;
     const customerData = await customerModel.findOne({ _id: new ObjectId(id) });
-    res.send({ message: "single customer details", data: customerData });
+    res
+      .status(200)
+      .send({ message: "single customer details", data: customerData });
   } catch (error) {
     console.log(error);
   }
@@ -99,7 +115,7 @@ const singleCustomer = async function (req, res) {
 
 const updateCustomer = async function (req, res) {
   try {
-    const { id } = req.params;
+    const { customerId } = req.params;
     const data = req.body;
     const {
       title,
@@ -113,7 +129,7 @@ const updateCustomer = async function (req, res) {
     } = data;
 
     const customerData = await customerModel.findOneAndUpdate(
-      { _id: new ObjectId(id) },
+      { _id: new ObjectId(customerId) },
       {
         title,
         fistName,
