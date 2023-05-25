@@ -89,7 +89,10 @@ const allCustomer = async function (req, res) {
   try {
     const customerData = await customerModel
       .find()
-      .select({ email: 1, gender: 1 });
+      .sort({ createdAt: 1 })
+      .select({ phoneNumber: 0 });
+
+    // Date, number
     const totalCount = await customerModel.countDocuments();
     res.status(200).send({
       message: "all customers fetch successfully",

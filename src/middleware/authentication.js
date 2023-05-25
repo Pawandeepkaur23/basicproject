@@ -98,3 +98,14 @@ module.exports = { authenticateToken, authorization };
 // 404 Not Found. ...
 // 409 conflicts
 // 500 Internal Server Error.
+
+// types of middleware =>5
+//1 global middleware/ application middleware ex. app.use and app.listen
+//2 router base/level middleware => authentication / authorization
+
+//3 built in middleware => ex let, var, const
+//4 3rd party middleware => 3rd party package install
+//5 error handling middleware => ex. something went wrong
+
+//restricted API's => api's with middleware or API's with authentication and autherization ex login
+//open to all API's => API's with without middleware ex. signUp/Register

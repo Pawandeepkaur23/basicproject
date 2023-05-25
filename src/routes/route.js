@@ -10,7 +10,7 @@ router.post("/customer", customerController.createCustomer);
 //get all customers
 router.get(
   "/customer",
-  middleware.authenticateToken,
+  //middleware.authenticateToken,
   customerController.allCustomer
 );
 //single customer
@@ -44,6 +44,7 @@ router.post(
   productController.createOrder
 );
 
+router.get("/order", productController.getAllOrder);
 // get all orders
 // single order
 //update order
