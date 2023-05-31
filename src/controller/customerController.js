@@ -61,7 +61,8 @@ const loginCustomer = async function (req, res) {
     if (!checkEmail) {
       res
         .status(404)
-        .send({ message: "email doesn't exist, please login again" });
+        .send({ message: `${email} doesn't exist, please login again` });
+      // .send({ message: "email doesn't exist, please login again " });
     }
 
     console.log("checkEmail", checkEmail._id);
@@ -85,22 +86,87 @@ const loginCustomer = async function (req, res) {
   }
 };
 
+// const allCustomer = async function (req, res) {
+//   try {
+//     const { gender } = req.query;
+//     const customerData = await customerModel.find({gender:gender});
+//     // find({ email: email });
+//     // .sort({ createdAt: 1 })
+//     // .select({ phoneNumber: 0 });
+
+//     // Date, number
+//     const totalCount = await customerModel.countDocuments();
+//     res.status(200).send({
+//       message: "all customers fetch successfully",
+//       count: totalCount,
+//       data: customerData,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
+
 const allCustomer = async function (req, res) {
   try {
-    const customerData = await customerModel
-      .find()
-      .sort({ createdAt: 1 })
-      .select({ phoneNumber: 0 });
+    const { query } = req;
+    const { keyword } = req.query;
 
-    // Date, number
-    const totalCount = await customerModel.countDocuments();
+    const fetchSize =
+      (req.query.fetchSize && parseInt(req.query.fetchSize)) || 2;
+
+    const startIndex =
+      (req.query.startIndex && parseInt(req.query.startIndex)) || 0;
+
+    //fetchSize/viewSize
+
+    const searchCriteria = {};
+    if (req.query.title) {
+      searchCriteria.title = req.query.title; // status=> Active, inActive  // gender => male, female  // isActive => true, false
+    }
+    // const searchCriteria = {};
+    // if (req.query.gender) {
+    //   searchCriteria.gender = req.query.gender; // status=> Active, inActive  // gender => male, female  // isActive => true, false
+    // }
+
+    if (req.query.keyword) {
+      searchCriteria["$or"] = [
+        { fistName: { $regex: `^${keyword.trim()}`, $options: "i" } },
+        { lastName: { $regex: `^${keyword.trim()}`, $options: "i" } },
+        { email: { $regex: `^${keyword.trim()}`, $options: "i" } },
+      ];
+    }
+
+    const customerData = await customerModel.aggregate([
+      { $match: searchCriteria },
+      {
+        $sort: {
+          createdAt: 1,
+        },
+      },
+
+      {
+        $facet: {
+          data: [{ $skip: startIndex }, { $limit: fetchSize }],
+          count: [{ $count: "total" }],
+        },
+      },
+    ]);
+
+    // customerData = [
+    //   {
+    //    data:[] => 0
+    //    count:[] => 0
+    //  }
+    // ]
+
     res.status(200).send({
-      message: "all customers fetch successfully",
-      count: totalCount,
-      data: customerData,
+      status: true,
+      message: "all customer fetch successfully",
+      count: customerData[0]?.count[0]?.total,
+      data: customerData[0]?.data,
     });
   } catch (error) {
-    console.log(error);
+    res.status(400).send({ status: false, message: error.message });
   }
 };
 
