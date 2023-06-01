@@ -24,13 +24,58 @@ const createOrder = async function (req, res) {
 
 const getAllOrder = async (req, res) => {
   try {
-    const data = await productModel
-      .find()
-      .select({ productName: 1, productSize: 1, _id: 0 });
+    // const data = await productModel.find();
+    // const custtomerData = await customerModel.findOne({ _id: customerId });
+    // {}
+    // .select({ productName: 1, productSize: 1, _id: 0 });
     // .find({ productPrice: { $lt: 2000 } })
     // .sort({ productPrice: 1 });
+    // res.send({ message: "all order fetch successfully", data });
+    const { query } = req;
 
-    res.send({ message: "all order fetch successfully", data });
+    const fetchSize =
+      (req.query.fetchSize && parseInt(req.query.fetchSize)) || 10;
+
+    const startIndex =
+      (req.query.startIndex && parseInt(req.query.startIndex)) || 0;
+
+    const orderData = await productModel.aggregate([
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+
+      {
+        $facet: {
+          data: [
+            { $skip: startIndex },
+            { $limit: fetchSize },
+            {
+              $lookup: {
+                from: "customers",
+                localField: "customerId",
+                foreignField: "_id",
+                as: "Details",
+              },
+            },
+            {
+              $unwind: {
+                path: "$Details",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
+          count: [{ $count: "total" }],
+        },
+      },
+    ]);
+
+    res.status(200).send({
+      message: "all order fetch successfully",
+      count: orderData[0]?.count[0]?.total,
+      data: orderData[0]?.data,
+    });
   } catch (error) {
     console.log(error);
   }

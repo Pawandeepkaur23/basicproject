@@ -112,7 +112,7 @@ const allCustomer = async function (req, res) {
     const { keyword } = req.query;
 
     const fetchSize =
-      (req.query.fetchSize && parseInt(req.query.fetchSize)) || 2;
+      (req.query.fetchSize && parseInt(req.query.fetchSize)) || 10;
 
     const startIndex =
       (req.query.startIndex && parseInt(req.query.startIndex)) || 0;
