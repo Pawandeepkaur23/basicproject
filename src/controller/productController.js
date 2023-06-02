@@ -5,7 +5,8 @@ const createOrder = async function (req, res) {
   try {
     const data = req.body;
 
-    const { productName, productSize, productPrice, customerId } = data;
+    const { productName, productSize, productPrice, customerId, orderDate } =
+      data;
 
     var customerData = await customerModel.findOne({ _id: customerId });
     console.log(customerData, "customerData");
@@ -15,6 +16,7 @@ const createOrder = async function (req, res) {
       productSize,
       productPrice,
       customerId,
+      orderDate: new Date(),
     });
     res.send({ message: "order created successfully", data: orderData });
   } catch (error) {
@@ -56,12 +58,23 @@ const getAllOrder = async (req, res) => {
                 from: "customers",
                 localField: "customerId",
                 foreignField: "_id",
-                as: "Details",
+                // pipeline: [
+                //   {
+                //     $project: {
+                //       fistName: 1,
+                //       lastName: 1,
+                //       email: 1,
+                //       phoneNumber: 1, // 1= true, 0= false,   _id by default true
+                //     },
+                //   },
+                // ],
+
+                as: "CustomerDetails",
               },
             },
             {
               $unwind: {
-                path: "$Details",
+                path: "$CustomerDetails",
                 preserveNullAndEmptyArrays: true,
               },
             },

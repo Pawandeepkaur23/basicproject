@@ -20,6 +20,9 @@ const productSchema = new mongoose.Schema(
       ref: "customer",
       required: true,
     },
+    orderDate: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

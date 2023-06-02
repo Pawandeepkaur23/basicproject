@@ -39,8 +39,8 @@ router.post("/login", customerController.loginCustomer);
 //oder routes
 router.post(
   "/order",
-  middleware.authenticateToken,
-  middleware.authorization,
+  // middleware.authenticateToken,
+  // middleware.authorization,
   productController.createOrder
 );
 
